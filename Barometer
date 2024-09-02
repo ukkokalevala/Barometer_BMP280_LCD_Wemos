@@ -1,0 +1,55 @@
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BMP280.h>
+#include <LiquidCrystal_I2C.h>
+
+Adafruit_BMP280 bmp;
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+float seaLevelPressure;
+
+void setup() {
+  Serial.begin(115200);
+  
+  if (!bmp.begin()) {
+    Serial.println("Could not find a valid BMP280 sensor, check wiring!");
+    while (1);
+  }
+
+  lcd.begin(16, 2);
+  lcd.backlight();
+  
+  // Slightly decrease the sea level pressure to correct the altitude
+  seaLevelPressure = 1017.0; // Adjust as needed
+
+  Serial.print("Sea level pressure set to: ");
+  Serial.println(seaLevelPressure);
+}
+
+void loop() {
+  float pressure = bmp.readPressure() / 100.0F; // Convert Pa to hPa
+  float altitude = bmp.readAltitude(seaLevelPressure);
+
+  // Display altitude and pressure on LCD
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Alt:");
+  lcd.print(altitude);
+  lcd.print(" m");
+  
+  lcd.setCursor(0, 1);
+  lcd.print("Pres:");
+  lcd.print(pressure);
+  lcd.print(" hPa");
+
+  // Print readings to Serial Monitor for debugging
+  Serial.print("Altitude: ");
+  Serial.print(altitude);
+  Serial.println(" m");
+
+  Serial.print("Pressure: ");
+  Serial.print(pressure);
+  Serial.println(" hPa");
+
+  delay(1000); // Update every second
+}
